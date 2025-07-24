@@ -1,6 +1,6 @@
 #include "./philo.h"
 
-pthread_mutex_t	mutex;
+pthread_mutex_t	*forks;
 
 // // the initial balance is 0
 // int balance = 0;
@@ -28,28 +28,55 @@ pthread_mutex_t	mutex;
 //   return NULL;
 // }
 
-void*    say_hi(void* id)
+void	philo_sleeping(int	ttd, int tte, int tts, int pheat)
 {
-	pthread_mutex_lock(&mutex);
-	ft_printf("%d has taken a fork\n", (int)(long)id);
-	pthread_mutex_unlock(&mutex);
+	ft_printf("%d is sleeping\n", philo->id);
+}
+
+void*    philosopher_routine(void* arg)
+{
+	t_philo *philo;
+
+	philo = (t_philo*)arg;
+	pthread_mutex_lock(philo->right_fork);
+	ft_printf("%d has taken a fork\n", philo->id);
+	ft_printf("%d is eating\n", philo->id);
+	pthread_mutex_unlock(philo->right_fork);
+	pthread_mutex_unlock(philo->left_fork);
+	ft_printf("%d is sleeping\n", philo->id);
+	usleep(1000000);
 	return (NULL);
 }
 
-void    create_philos(t_philo *philos, char **argv)
+void    create_philos(t_philo *philos, char **argv, int num_philos)
 {
 	int i;
-	pthread_t   threads[ft_atoi(argv[1])];
-	int         num_philos;
+	pthread_t   threads[num_philos];
 
 	i = 0;
-	num_philos = ft_atoi(argv[1]);
 	if (!argv || !argv[1])
 		return ;
+	forks = malloc(sizeof(pthread_mutex_t) * num_philos);
+	i = 0;
 	while (i < num_philos)
 	{
-		pthread_create(&threads[i], NULL, say_hi, (void*)(long)(i + 1));
+		pthread_mutex_init(&forks[i], NULL);
+		i++;
+	}
+	i = 0;
+	while (i < num_philos)
+	{
 		philos[i].id = i + 1;
+		philos[i].left_fork = &forks[i];
+		philos[i].right_fork = &forks[(i + 1) % num_philos];
+		philos[i].meals_eaten = 0;
+		i++;
+	}
+	i = 0;
+	while (i < num_philos)
+	{
+		pthread_create(&threads[i], NULL, philosopher_routine, &philos[i]);
+		usleep(ft_atoi(argv[2]) * 250000);
 		i++;
 	}
 	i = 0;
@@ -58,9 +85,23 @@ void    create_philos(t_philo *philos, char **argv)
 		pthread_join(threads[i], NULL);
 		i++;
 	}
+	i = 0;
+	while (i < num_philos)
+	{
+		pthread_mutex_destroy(&forks[i]);
+		i++;
+	}
+	free(forks);
 }
 
-
+// void	philos_loop(int	ttd, int tte, int tts, int pheat)
+// {
+// 	if (!ttd | !tte | !tts)
+// 		return ;
+// 	else if (!pheat)
+// 		(void)pheat;
+	
+// }
 
 // number_of_philosophers time_to_die time_to_eat time_to_sleep
 // [number_of_times_each_philosopher_must_eat]
@@ -76,18 +117,21 @@ and X with the philosopher number.
 */
 int main(int argc, char **argv)
 {
-	t_philo *philos;
-	int num_philos;
-	
+	t_philo	*philos;
+	int		num_philos;
+	int		i;
+
+	// make a while that puts for each philo their respective info (time to die, to sleep etc)
+
+	(void)argc;
+	i = 0;
 	if (argc < 2)
 		return (ft_printf("Insert the needed arguments to proceed\n"));
-	pthread_mutex_init(&mutex, NULL);
 	num_philos = ft_atoi(argv[1]);
 	philos = malloc(sizeof(t_philo) * num_philos);
 	if (!philos)
 		return (ft_printf("Memory allocation failed\n"));
-	create_philos(philos, argv);	
+	create_philos(philos, argv, num_philos);	
 	free(philos);
-	pthread_mutex_destroy(&mutex);
 	return 0;
 }

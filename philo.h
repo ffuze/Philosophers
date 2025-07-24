@@ -1,6 +1,8 @@
 #ifndef PHILO_H
 # define PHILO_H
 
+# define NNN 3
+
 # include <pthread.h>
 # include <unistd.h>
 # include <stdio.h>
