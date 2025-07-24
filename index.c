@@ -1,5 +1,7 @@
 #include "./philo.h"
 
+pthread_mutex_t	mutex;
+
 // // the initial balance is 0
 // int balance = 0;
 
@@ -28,7 +30,9 @@
 
 void*    say_hi(void* id)
 {
-	ft_printf("%d: hey esisto anch'io!!!\n", (int)(long)id);
+	pthread_mutex_lock(&mutex);
+	ft_printf("%d has taken a fork\n", (int)(long)id);
+	pthread_mutex_unlock(&mutex);
 	return (NULL);
 }
 
@@ -56,6 +60,8 @@ void    create_philos(t_philo *philos, char **argv)
 	}
 }
 
+
+
 // number_of_philosophers time_to_die time_to_eat time_to_sleep
 // [number_of_times_each_philosopher_must_eat]
 
@@ -75,14 +81,13 @@ int main(int argc, char **argv)
 	
 	if (argc < 2)
 		return (ft_printf("Insert the needed arguments to proceed\n"));
-	
+	pthread_mutex_init(&mutex, NULL);
 	num_philos = ft_atoi(argv[1]);
 	philos = malloc(sizeof(t_philo) * num_philos);
 	if (!philos)
 		return (ft_printf("Memory allocation failed\n"));
-	
-	create_philos(philos, argv);
-	
+	create_philos(philos, argv);	
 	free(philos);
+	pthread_mutex_destroy(&mutex);
 	return 0;
 }
