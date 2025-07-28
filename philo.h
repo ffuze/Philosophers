@@ -15,6 +15,11 @@ typedef struct s_philo
 	int                 id;
 	pthread_t           thread;
 	int                 meals_eaten;
+	int                 time_to_die;
+	int                 time_to_eat;
+	int                 time_to_sleep;
+	int                 must_eat_count;
+	long                last_meal_time;
 	pthread_mutex_t     *left_fork;
 	pthread_mutex_t     *right_fork;
 }	t_philo;
