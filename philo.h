@@ -7,8 +7,18 @@
 # include <unistd.h>
 # include <stdio.h>
 # include <stdlib.h>
+# include <sys/time.h>
 
 # include "./libft/libft.h"
+
+typedef enum
+{
+	FORK_TAKEN,
+	EATING,
+	SLEEPING,
+	THINKING,
+	DIED
+}	p_action;
 
 typedef struct s_philo
 {
@@ -22,7 +32,14 @@ typedef struct s_philo
 	long                last_meal_time;
 	pthread_mutex_t     *left_fork;
 	pthread_mutex_t     *right_fork;
+	pthread_mutex_t		*print_mutex;
 }	t_philo;
 
+typedef struct s_misc
+{
+	pthread_mutex_t	*forks;
+    pthread_mutex_t	print_mutex;
+    int				num_philos;
+}	t_misc;
 
 #endif

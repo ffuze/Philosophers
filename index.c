@@ -1,35 +1,47 @@
 #include "./philo.h"
-#include <sys/time.h>
 
-pthread_mutex_t	*forks;
-pthread_mutex_t	print_mutex;
-
-long	get_time_ms(void)
+size_t	get_time_ms(void)
 {
 	struct timeval	time;
 	
-	gettimeofday(&time, NULL);
+	if (gettimeofday(&time, NULL) == -1)
+		write(2, "gettimeofday() error\n", 22);
 	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
 }
 
-void	safe_print(char *msg, int philo_id, long timestamp)
+void	print_info(char *msg, int philo_id, long timestamp, pthread_mutex_t *print_mutex)
 {
-	pthread_mutex_lock(&print_mutex);
-	ft_printf("%ld %d %s\n", timestamp, philo_id, msg);
-	pthread_mutex_unlock(&print_mutex);
+	if (!print_mutex || !msg)
+	{
+		ft_printf("+++++++++++++++++++++++++++++++++++++++++++\n");
+		return ;
+	}
+	pthread_mutex_lock(print_mutex);
+	printf("-%ld- --%d-- ---%s---\n", timestamp, philo_id, msg);
+	pthread_mutex_unlock(print_mutex);
+}
+
+int	ft_usleep(size_t milliseconds)
+{
+	size_t	start;
+
+	start = get_time_ms();
+	while ((get_time_ms() - start) < milliseconds)
+		usleep(500);
+	return (0);
 }
 
 // // the initial balance is 0
 // int balance = 0;
 
-// // write the new balance (after as simulated 1/4 second delay)
+// // write the new balance (after a 1/4 second delay)
 // void write_balance(int new_balance)
 // {
 //   usleep(500000);
 //   balance = new_balance;
 // }
 
-// // returns the balance (after a simulated 1/4 seond delay)
+// // returns the balance (after a 1/4 seond delay)
 // int read_balance()
 // {
 //   usleep(500000);
@@ -56,22 +68,22 @@ void*    philosopher_routine(void* arg)
 	{
 		pthread_mutex_lock(philo->left_fork);
 		current_time = get_time_ms();
-		safe_print("has taken a fork", philo->id, current_time);
+		print_info("has taken a fork", philo->id, current_time, philo->print_mutex);
 		pthread_mutex_lock(philo->right_fork);
 		current_time = get_time_ms();
-		safe_print("has taken a fork", philo->id, current_time);
+		print_info("has taken a fork", philo->id, current_time, philo->print_mutex);
 		current_time = get_time_ms();
-		safe_print("is eating", philo->id, current_time);
+		print_info("is eating", philo->id, current_time, philo->print_mutex);
 		philo->last_meal_time = current_time;
 		philo->meals_eaten++;
-		usleep(philo->time_to_eat * 1000);
+		ft_usleep(philo->time_to_eat);
 		pthread_mutex_unlock(philo->right_fork);
 		pthread_mutex_unlock(philo->left_fork);
 		current_time = get_time_ms();
-		safe_print("is sleeping", philo->id, current_time);
-		usleep(philo->time_to_sleep * 1000);
+		print_info("is sleeping", philo->id, current_time, philo->print_mutex);
+		ft_usleep(philo->time_to_sleep);
 		current_time = get_time_ms();
-		safe_print("is thinking", philo->id, current_time);
+		print_info("is thinking", philo->id, current_time, philo->print_mutex);
 		if (philo->must_eat_count != -1 && philo->meals_eaten >= philo->must_eat_count)
 			break;
 	}
@@ -80,25 +92,29 @@ void*    philosopher_routine(void* arg)
 
 void    create_philos(t_philo *philos, char **argv, int num_philos)
 {
-	int i;
+	int			i;
 	pthread_t   threads[num_philos];
+	t_misc		data;
 
-	i = 0;
 	if (!argv || !argv[1])
 		return ;
-	pthread_mutex_init(&print_mutex, NULL);
-	forks = malloc(sizeof(pthread_mutex_t) * num_philos);
+	pthread_mutex_init(&data.print_mutex, NULL);
+	data.forks = malloc(sizeof(pthread_mutex_t) * num_philos);
+	if (!data.forks)
+		return;
+	data.num_philos = num_philos;
 	i = 0;
 	while (i < num_philos)
 	{
-		pthread_mutex_init(&forks[i], NULL);
+		pthread_mutex_init(&data.forks[i], NULL);
 		i++;
 	}
 	i = 0;
 	while (i < num_philos)
 	{
-		philos[i].left_fork = &forks[i];
-		philos[i].right_fork = &forks[(i + 1) % num_philos];
+		philos[i].left_fork = &data.forks[i];
+		philos[i].right_fork = &data.forks[(i + 1) % num_philos];
+		philos[i].print_mutex = &data.print_mutex;
 		i++;
 	}
 	i = 0;
@@ -116,11 +132,11 @@ void    create_philos(t_philo *philos, char **argv, int num_philos)
 	i = 0;
 	while (i < num_philos)
 	{
-		pthread_mutex_destroy(&forks[i]);
+		pthread_mutex_destroy(&data.forks[i]);
 		i++;
 	}
-	pthread_mutex_destroy(&print_mutex);
-	free(forks);
+	pthread_mutex_destroy(&data.print_mutex);
+	free(data.forks);
 }
 
 // void	philos_loop(int	ttd, int tte, int tts, int pheat)
@@ -144,26 +160,48 @@ void    create_philos(t_philo *philos, char **argv, int num_philos)
 Replace timestamp_in_ms with the current timestamp in milliseconds
 and X with the philosopher number.
 */
-void	init_philosophers(t_philo *philos, char **argv, int num_philos)
+void	init_philosophers(t_philo *philos, char **argv, int argc, int num_philos)
 {
 	int i;
 	
 	i = 0;
-	(void)argv;
 	while (i < num_philos)
 	{
 		philos[i].id = i + 1;
-		// philos[i].time_to_die = ft_atoi(argv[2]);
-		// philos[i].time_to_eat = ft_atoi(argv[3]);
-		// philos[i].time_to_sleep = ft_atoi(argv[4]);
-		// if (argv[5])
-			// philos[i].must_eat_count = ft_atoi(argv[5]);
-		// else
-		// 	philos[i].must_eat_count = -1; // infinite
+		if (argc >= 3)
+			philos[i].time_to_die = ft_atoi(argv[2]);
+		else
+			philos[i].time_to_die = 800;
+		if (argc >= 4)
+			philos[i].time_to_eat = ft_atoi(argv[3]);
+		else
+			philos[i].time_to_eat = 200;
+		if (argc >= 5)
+			philos[i].time_to_sleep = ft_atoi(argv[4]);
+		else
+			philos[i].time_to_sleep = 200;
+		if (argc >= 6)
+			philos[i].must_eat_count = ft_atoi(argv[5]);
+		else
+			philos[i].must_eat_count = -1; // infinite
 		philos[i].meals_eaten = 0;
 		philos[i].last_meal_time = 0;
 		i++;
 	}
+}
+
+static void	init_p_params(t_philo *philo)
+{
+	philo->left_fork = NULL;
+	philo->right_fork = NULL;
+	philo->print_mutex = NULL;
+	philo->id = 0;
+	philo->time_to_die = 0;
+	philo->last_meal_time = 0;
+	philo->meals_eaten = 0;
+	philo->must_eat_count = 0;
+	philo->time_to_sleep = 0;
+	philo->time_to_eat = 0;
 }
 
 int main(int argc, char **argv)
@@ -171,21 +209,17 @@ int main(int argc, char **argv)
 	t_philo	*philos;
 	int		num_philos;
 
-	if (argc < 2/*argc < 5 || argc > 6*/)
+	if (argc < 2)
 		return (ft_printf("Usage: ./philo num_philos time_to_die time_to_eat time_to_sleep [must_eat_count]\n"));
-	
 	num_philos = ft_atoi(argv[1]);
 	if (num_philos <= 0)
 		return (ft_printf("!!!invalid number of philosophers!!!\n"));
-		
 	philos = malloc(sizeof(t_philo) * num_philos);
 	if (!philos)
 		return (ft_printf("!!!memory allocation failed!!!\n"));
-	init_philosophers(philos, argv, num_philos);
-	
-	// Crea e gestisce i filosofi
-	create_philos(philos, argv, num_philos);	
-	
+	init_p_params(philos);
+	init_philosophers(philos, argv, argc, num_philos);
+	create_philos(philos, argv, num_philos);
 	free(philos);
 	return 0;
 }
