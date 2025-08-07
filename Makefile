@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -Werror
 NAME = philo
 OBJ_DIR = obj
 
-SRC_FILES = index.c utils.c free_memory.c init_philos.c philos_routine.c
+SRC_FILES = index.c utils.c free_memory.c init_philos.c philos_routine.c monitor.c
 OBJECTS = $(SRC_FILES:%.c=$(OBJ_DIR)/%.o)
 
 OTHER_DIRS = -pthread

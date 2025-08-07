@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init_philos.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: adegl-in <adegl-in@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/08/07 11:30:36 by adegl-in          #+#    #+#             */
+/*   Updated: 2025/08/07 11:52:06 by adegl-in         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "./philo.h"
 
 long	take_time(void)
@@ -11,6 +23,7 @@ long	take_time(void)
 void	init_thread(t_table *table, t_philo **philos)
 {
 	pthread_t	*thread;
+	pthread_t	monitor;
 	int			i;
 
 	i = -1;
@@ -21,9 +34,11 @@ void	init_thread(t_table *table, t_philo **philos)
 	table->start = take_time();
 	while (++i < table->n_philo)
 		pthread_create(&thread[i], NULL, routine, philos[i]);
+	pthread_create(&monitor, NULL, monitor_routine, philos);
 	i = -1;
 	while (++i < table->n_philo)
 		pthread_join(thread[i], NULL);
+	pthread_join(monitor, NULL);
 	free_philo(philos);
 	free(thread);
 }

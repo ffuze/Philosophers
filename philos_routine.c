@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philos_routine.c                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: adegl-in <adegl-in@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/08/07 11:30:45 by adegl-in          #+#    #+#             */
+/*   Updated: 2025/08/07 11:50:39 by adegl-in         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "./philo.h"
 
 int	thinking(t_philo *philo)
@@ -45,17 +57,7 @@ int	eating(t_philo *philo)
 			return (pthread_mutex_unlock(philo->fork), 1);
 		}
 	}
-	print_mess(philo, "has taken a fork\n", philo->table->start, philo->id);
-	print_mess(philo, "has taken a fork\n", philo->table->start, philo->id);
-	print_mess(philo, "is eating\n", philo->table->start, philo->id);
-	philo->n_eating++;
-	usleep(philo->table->time_to_eat * 1000);
-	philo->last_eat = take_time();
-	pthread_mutex_unlock(philo->fork);
-	pthread_mutex_unlock(philo->r_fork);
-	if (sleeping(philo) == 1)
-		return (1);
-	return (0);
+	return (proceed_routine(philo));
 }
 
 int	is_one(t_philo *philo)
@@ -72,9 +74,16 @@ void	*routine(void *arg)
 
 	philo = (t_philo *)arg;
 	if (philo->id % 2 == 0)
-    	usleep((philo->table->time_to_sleep + (philo->id * 10)) * 1000);
+		usleep((philo->table->time_to_sleep + (philo->id * 10)) * 1000);
 	while (1)
 	{
+		pthread_mutex_lock(philo->table->simulation);
+		if (philo->table->is_finish == 1)
+		{
+			pthread_mutex_unlock(philo->table->simulation);
+			break ;
+		}
+		pthread_mutex_unlock(philo->table->simulation);
 		if (philo->table->n_philo == 1)
 		{
 			is_one(philo);

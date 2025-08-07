@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alek <alek@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: adegl-in <adegl-in@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/04 11:28:37 by alek              #+#    #+#             */
-/*   Updated: 2025/08/05 10:45:28 by alek             ###   ########.fr       */
+/*   Updated: 2025/08/07 11:52:27 by adegl-in         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,12 @@ void	init(t_table *table);
 long	take_time(void);
 void	print_mess(t_philo *philo, char *str, long start, int id);
 void	*routine(void *arg);
+void	*monitor_routine(void *arg);
 int		f_eat(t_philo *philos);
 int		is_dead(t_philo *philos);
 void	free_philo(t_philo **philos);
+int		proceed_routine(t_philo *philo);
+int		sleeping(t_philo *philo);
+void	*monitor_routine(void *arg);
 
 #endif

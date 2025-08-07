@@ -1,4 +1,31 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: adegl-in <adegl-in@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/08/07 11:30:48 by adegl-in          #+#    #+#             */
+/*   Updated: 2025/08/07 11:50:03 by adegl-in         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "./philo.h"
+
+int	proceed_routine(t_philo *philo)
+{
+	print_mess(philo, "has taken a fork\n", philo->table->start, philo->id);
+	print_mess(philo, "has taken a fork\n", philo->table->start, philo->id);
+	print_mess(philo, "is eating\n", philo->table->start, philo->id);
+	philo->last_eat = take_time();
+	philo->n_eating++;
+	usleep(philo->table->time_to_eat * 1000);
+	pthread_mutex_unlock(philo->fork);
+	pthread_mutex_unlock(philo->r_fork);
+	if (sleeping(philo) == 1)
+		return (1);
+	return (0);
+}
 
 void	print_mess(t_philo *philo, char *str, long start, int id)
 {
