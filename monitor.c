@@ -6,7 +6,7 @@
 /*   By: adegl-in <adegl-in@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 11:51:54 by adegl-in          #+#    #+#             */
-/*   Updated: 2025/08/07 11:52:20 by adegl-in         ###   ########.fr       */
+/*   Updated: 2025/08/10 20:27:40 by adegl-in         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,12 @@ void	*monitor_routine(void *arg)
 		i = -1;
 		while (++i < philos[0]->table->n_philo)
 		{
-			if (is_dead(philos[i]) == 1 || f_eat(philos[i]) == 1)
+			if (is_dead(philos[i]) == 1)
 				return (NULL);
 		}
-		usleep(1000);
+		if (f_eat(philos) == 1)
+			return (NULL);
+		usleep(500);
 	}
 	return (NULL);
 }
