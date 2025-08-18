@@ -6,7 +6,7 @@
 /*   By: adegl-in <adegl-in@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 11:30:45 by adegl-in          #+#    #+#             */
-/*   Updated: 2025/08/10 20:55:51 by adegl-in         ###   ########.fr       */
+/*   Updated: 2025/08/18 14:09:53 by adegl-in         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ int	thinking(t_philo *philo)
 	if (is_dead(philo) == 1)
 		return (1);
 	print_mess(philo, "is thinking\n", philo->table->start, philo->id);
+	if (philo->table->n_philo == 5)
+		usleep(1000);
 	return (0);
 }
 
@@ -73,8 +75,15 @@ void	*routine(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	if (philo->id % 2 == 0)
-		usleep((philo->table->time_to_sleep + (philo->id * 10)) * 1000);
+	if (philo->table->n_philo == 1)
+	{
+		is_one(philo);
+		return (philo);
+	}
+	if (philo->table->n_philo % 2 == 0 && philo->id % 2 == 0)
+		usleep(philo->table->time_to_eat * 1000);
+	else if (philo->table->n_philo % 2 == 1 && philo->id % 2 == 1 && philo->id > 1)
+		usleep((philo->table->time_to_eat / 2) * 1000);
 	while (1)
 	{
 		pthread_mutex_lock(philo->table->simulation);
@@ -84,12 +93,7 @@ void	*routine(void *arg)
 			break ;
 		}
 		pthread_mutex_unlock(philo->table->simulation);
-		if (philo->table->n_philo == 1)
-		{
-			is_one(philo);
-			break ;
-		}
-		else if (eating(philo) == 1)
+		if (eating(philo) == 1)
 			break ;
 	}
 	return (philo);
